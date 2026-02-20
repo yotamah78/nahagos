@@ -2,5 +2,5 @@
 buildCommand = "npm install && npm run build"
 
 [deploy]
-startCommand = "npx prisma db push && node dist/app.js"
+startCommand = "npx prisma db push && npx tsx prisma/seed.ts && node dist/app.js"
 healthcheckPath = "/api/health"
