@@ -229,34 +229,31 @@ export function WelcomePage() {
 
       {/* Slides */}
       <div className="flex-1 relative overflow-hidden">
-        <div
-          className="flex h-full transition-transform duration-300 ease-out"
-          style={{ width: `${slides.length * 100}%`, transform: `translateX(-${(current / slides.length) * 100}%)` }}
-        >
-          {slides.map((slide, i) => {
-            const Illus = slide.Illustration;
-            return (
-              <div
-                key={i}
-                className="h-full flex flex-col items-center justify-center px-8 text-center"
-                style={{ width: `${100 / slides.length}%` }}
-              >
-                {/* Illustration */}
-                <div className="w-full max-w-[280px] mx-auto mb-6">
-                  <Illus />
-                </div>
-
-                {/* Text */}
-                <h2 className="text-3xl font-black text-brand-black tracking-tight leading-tight mb-3">
-                  {slide.title}
-                </h2>
-                <p className="text-base text-brand-gray font-medium leading-relaxed max-w-[260px]">
-                  {slide.subtitle}
-                </p>
+        {slides.map((slide, i) => {
+          const Illus = slide.Illustration;
+          const offset = i - current;
+          return (
+            <div
+              key={i}
+              dir="rtl"
+              className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(${offset * 100}%)` }}
+            >
+              {/* Illustration */}
+              <div className="w-full max-w-[280px] mx-auto mb-6">
+                <Illus />
               </div>
-            );
-          })}
-        </div>
+
+              {/* Text */}
+              <h2 className="text-3xl font-black text-brand-black tracking-tight leading-tight mb-3">
+                {slide.title}
+              </h2>
+              <p className="text-base text-brand-gray font-medium leading-relaxed max-w-[260px]">
+                {slide.subtitle}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Bottom controls */}
