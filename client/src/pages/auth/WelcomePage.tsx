@@ -163,22 +163,19 @@ function DriverEarningsIllustration() {
 
 const slides = [
   {
-    illustration: <CarServiceIllustration />,
+    Illustration: CarServiceIllustration,
     title: 'הרכב שלך – בידיים מקצועיות',
     subtitle: 'מצא נהג שיקח את הרכב לשטיפה, מוסך, או כל שירות אחר – ויחזיר אותו אליך',
-    bg: 'from-primary-50 to-white',
   },
   {
-    illustration: <VerifiedDriverIllustration />,
+    Illustration: VerifiedDriverIllustration,
     title: 'נהגים מאומתים בלבד',
     subtitle: 'כל נהג עובר בדיקת זהות ורישיון. תראה ביקורות אמיתיות לפני שתבחר',
-    bg: 'from-blue-50 to-white',
   },
   {
-    illustration: <DriverEarningsIllustration />,
+    Illustration: DriverEarningsIllustration,
     title: 'הצטרף כנהג ותרוויח',
     subtitle: 'קבל משרות באזורך, נהל את הזמן שלך בחופשיות, ותהנה מהכנסה נוספת',
-    bg: 'from-amber-50 to-white',
   },
 ];
 
@@ -236,26 +233,29 @@ export function WelcomePage() {
           className="flex h-full transition-transform duration-300 ease-out"
           style={{ width: `${slides.length * 100}%`, transform: `translateX(-${(current / slides.length) * 100}%)` }}
         >
-          {slides.map((slide, i) => (
-            <div
-              key={i}
-              className="h-full flex flex-col items-center justify-center px-8 text-center"
-              style={{ width: `${100 / slides.length}%` }}
-            >
-              {/* Illustration */}
-              <div className="w-full max-w-[280px] mx-auto mb-6">
-                {slide.illustration}
-              </div>
+          {slides.map((slide, i) => {
+            const Illus = slide.Illustration;
+            return (
+              <div
+                key={i}
+                className="h-full flex flex-col items-center justify-center px-8 text-center"
+                style={{ width: `${100 / slides.length}%` }}
+              >
+                {/* Illustration */}
+                <div className="w-full max-w-[280px] mx-auto mb-6">
+                  <Illus />
+                </div>
 
-              {/* Text */}
-              <h2 className="text-3xl font-black text-brand-black tracking-tight leading-tight mb-3">
-                {slide.title}
-              </h2>
-              <p className="text-base text-brand-gray font-medium leading-relaxed max-w-[260px]">
-                {slide.subtitle}
-              </p>
-            </div>
-          ))}
+                {/* Text */}
+                <h2 className="text-3xl font-black text-brand-black tracking-tight leading-tight mb-3">
+                  {slide.title}
+                </h2>
+                <p className="text-base text-brand-gray font-medium leading-relaxed max-w-[260px]">
+                  {slide.subtitle}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
