@@ -1,4 +1,6 @@
 import { prisma } from '../../config/database';
+import { sendEmail, newRequestNotificationEmail } from '../../utils/email';
+import { env } from '../../config/env';
 
 export async function createRequest(customerId: string, data: {
   pickupAddress: string;
@@ -10,9 +12,59 @@ export async function createRequest(customerId: string, data: {
   carModel: string;
   carPlateNumber: string;
 }) {
-  return prisma.serviceRequest.create({
+  const request = await prisma.serviceRequest.create({
     data: { customerId, ...data },
   });
+
+  // Notify relevant verified drivers (non-blocking)
+  notifyDriversOfNewRequest(request).catch(err =>
+    console.error('Failed to notify drivers:', err)
+  );
+
+  return request;
+}
+
+async function notifyDriversOfNewRequest(request: {
+  id: string;
+  carModel: string;
+  pickupAddress: string;
+  pickupDatetime: Date;
+}) {
+  const drivers = await prisma.user.findMany({
+    where: {
+      role: 'DRIVER',
+      driverProfile: { verificationStatus: 'VERIFIED' },
+    },
+    select: {
+      email: true,
+      name: true,
+      driverProfile: { select: { city: true } },
+    },
+  });
+
+  const pickupLower = request.pickupAddress.toLowerCase();
+  const appUrl = env.CLIENT_URL;
+
+  // Filter by city match; fall back to all verified drivers if no match
+  const relevant = drivers.filter(d => {
+    const city = d.driverProfile?.city?.toLowerCase() ?? '';
+    return city && pickupLower.includes(city);
+  });
+  const targets = relevant.length > 0 ? relevant : drivers;
+
+  for (const driver of targets) {
+    const { subject, html } = newRequestNotificationEmail({
+      driverName: driver.name,
+      carModel: request.carModel,
+      pickupAddress: request.pickupAddress,
+      pickupDatetime: request.pickupDatetime,
+      requestId: request.id,
+      appUrl,
+    });
+    await sendEmail({ to: driver.email, subject, html }).catch(err =>
+      console.error(`Email to ${driver.email} failed:`, err)
+    );
+  }
 }
 
 export async function getMyRequests(customerId: string) {

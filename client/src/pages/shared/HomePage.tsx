@@ -7,7 +7,7 @@ export function HomePage() {
 
   if (isLoading) return <LoadingScreen />;
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/welcome" replace />;
   if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
   if (user.role === 'DRIVER') return <Navigate to="/driver/dashboard" replace />;
   return <Navigate to="/dashboard" replace />;

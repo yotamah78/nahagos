@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 // Pages
 import { HomePage } from './pages/shared/HomePage';
+import { WelcomePage } from './pages/auth/WelcomePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { CustomerDashboard } from './pages/customer/CustomerDashboard';
@@ -23,6 +24,7 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public */}
+          <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 

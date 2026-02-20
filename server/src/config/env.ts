@@ -22,6 +22,11 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().default('placeholder'),
   CLOUDINARY_API_KEY: z.string().default('placeholder'),
   CLOUDINARY_API_SECRET: z.string().default('placeholder'),
+  EMAIL_FROM: z.string().default('CarRelay <noreply@carrelay.co.il>'),
+  EMAIL_SMTP_HOST: z.string().optional(),
+  EMAIL_SMTP_PORT: z.coerce.number().default(587),
+  EMAIL_SMTP_USER: z.string().default(''),
+  EMAIL_SMTP_PASS: z.string().default(''),
 });
 
 const parsed = envSchema.safeParse(process.env);

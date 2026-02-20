@@ -1,4 +1,6 @@
 import { prisma } from '../../config/database';
+import { sendEmail, bidConfirmationEmail } from '../../utils/email';
+import { env } from '../../config/env';
 
 export async function submitBid(driverId: string, data: {
   requestId: string;
@@ -29,6 +31,20 @@ export async function submitBid(driverId: string, data: {
     where: { id: data.requestId, status: 'OPEN' },
     data: { status: 'BIDDING' },
   }).catch(() => { /* Already in BIDDING - OK */ });
+
+  // Send confirmation email to driver (non-blocking)
+  prisma.user.findUnique({ where: { id: driverId }, select: { email: true, name: true } })
+    .then(driver => {
+      if (!driver) return;
+      const { subject, html } = bidConfirmationEmail({
+        driverName: driver.name,
+        carModel: request.carModel,
+        pickupAddress: request.pickupAddress,
+        price: data.price,
+      });
+      return sendEmail({ to: driver.email, subject, html });
+    })
+    .catch(err => console.error('Failed to send bid confirmation email:', err));
 
   return bid;
 }

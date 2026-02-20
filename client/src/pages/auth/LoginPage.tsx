@@ -85,22 +85,27 @@ export function LoginPage() {
       {/* Form Panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <svg width="28" height="18" viewBox="0 0 26 16" fill="none">
-              <rect x="1" y="7" width="24" height="7" rx="2.5" fill="#16a34a"/>
-              <path d="M5 7 L8 2 L18 2 L21 7 Z" fill="#16a34a" opacity="0.75"/>
-              <circle cx="7.5" cy="14" r="3" fill="#16a34a"/>
-              <circle cx="18.5" cy="14" r="3" fill="#16a34a"/>
-              <circle cx="7.5" cy="14" r="1.2" fill="white"/>
-              <circle cx="18.5" cy="14" r="1.2" fill="white"/>
-            </svg>
-            <span className="text-2xl font-black tracking-tight text-brand-black">CarRelay</span>
+          {/* Logo (always visible on mobile, also on desktop form side) */}
+          <div className="flex flex-col items-center mb-8 lg:mb-10">
+            <div className="flex items-center gap-3 mb-3">
+              <svg width="40" height="26" viewBox="0 0 26 16" fill="none">
+                <rect x="1" y="7" width="24" height="7" rx="2.5" fill="#16a34a"/>
+                <path d="M5 7 L8 2 L18 2 L21 7 Z" fill="#16a34a" opacity="0.75"/>
+                <circle cx="7.5" cy="14" r="3" fill="#16a34a"/>
+                <circle cx="18.5" cy="14" r="3" fill="#16a34a"/>
+                <circle cx="7.5" cy="14" r="1.2" fill="white"/>
+                <circle cx="18.5" cy="14" r="1.2" fill="white"/>
+              </svg>
+              <span className="text-3xl font-black tracking-tight text-brand-black">CarRelay</span>
+            </div>
+            <p className="text-sm text-brand-gray font-medium text-center leading-relaxed">
+              שירות מסירת רכב חכם — נהגים מאומתים לטיפול, מוסך ושטיפה
+            </p>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-brand-black">כניסה למערכת</h1>
-            <p className="text-brand-gray mt-1.5 font-medium">ברוך הבא בחזרה</p>
+          <div className="mb-6">
+            <h1 className="text-2xl font-black text-brand-black">כניסה למערכת</h1>
+            <p className="text-brand-gray mt-1 font-medium text-sm">ברוך הבא בחזרה</p>
           </div>
 
           {error && (
