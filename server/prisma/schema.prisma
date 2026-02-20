@@ -3,11 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// SQLite does not support enums - using String with known values:
+// String fields with known values (compatible with both SQLite and PostgreSQL):
 // Role: CUSTOMER | DRIVER | ADMIN
 // DriverVerificationStatus: PENDING_VERIFICATION | VERIFIED | REJECTED
 // ServiceRequestStatus: OPEN | BIDDING | DRIVER_SELECTED | IN_PROGRESS | COMPLETED | CANCELLED
