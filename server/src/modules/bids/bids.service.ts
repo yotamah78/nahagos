@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database';
-import { sendEmail, bidConfirmationEmail } from '../../utils/email';
+import { sendEmail, bidConfirmationEmail, bidReceivedEmail } from '../../utils/email';
 import { env } from '../../config/env';
 
 export async function submitBid(driverId: string, data: {
@@ -32,19 +32,36 @@ export async function submitBid(driverId: string, data: {
     data: { status: 'BIDDING' },
   }).catch(() => { /* Already in BIDDING - OK */ });
 
-  // Send confirmation email to driver (non-blocking)
-  prisma.user.findUnique({ where: { id: driverId }, select: { email: true, name: true } })
-    .then(driver => {
-      if (!driver) return;
+  // Emails to driver (confirmation) and customer (new bid received) — non-blocking
+  Promise.all([
+    prisma.user.findUnique({ where: { id: driverId }, select: { email: true, name: true } }),
+    prisma.user.findUnique({ where: { id: request.customerId }, select: { email: true, name: true } }),
+  ]).then(([driver, customer]) => {
+    if (driver) {
       const { subject, html } = bidConfirmationEmail({
         driverName: driver.name,
         carModel: request.carModel,
         pickupAddress: request.pickupAddress,
         price: data.price,
       });
-      return sendEmail({ to: driver.email, subject, html });
-    })
-    .catch(err => console.error('Failed to send bid confirmation email:', err));
+      sendEmail({ to: driver.email, subject, html }).catch(err =>
+        console.error('bid confirmation email failed:', err)
+      );
+    }
+    if (customer && driver) {
+      const { subject, html } = bidReceivedEmail({
+        customerName: customer.name,
+        driverName: driver.name,
+        carModel: request.carModel,
+        price: data.price,
+        requestId: data.requestId,
+        appUrl: env.CLIENT_URL,
+      });
+      sendEmail({ to: customer.email, subject, html }).catch(err =>
+        console.error('bid received email failed:', err)
+      );
+    }
+  }).catch(err => console.error('Failed to send bid emails:', err));
 
   return bid;
 }

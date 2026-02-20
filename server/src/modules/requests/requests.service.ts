@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database';
-import { sendEmail, newRequestNotificationEmail } from '../../utils/email';
+import { sendEmail, newRequestNotificationEmail, bidSelectedEmail } from '../../utils/email';
 import { env } from '../../config/env';
 
 export async function createRequest(customerId: string, data: {
@@ -157,6 +157,23 @@ export async function selectDriver(customerId: string, requestId: string, bidId:
       data: { selectedDriverId: selectedBid.driverId, status: 'DRIVER_SELECTED' },
     }),
   ]);
+
+  // Notify selected driver (non-blocking)
+  prisma.user.findUnique({ where: { id: selectedBid.driverId }, select: { email: true, name: true } })
+    .then(driver => {
+      if (!driver) return;
+      const { subject, html } = bidSelectedEmail({
+        driverName: driver.name,
+        carModel: request.carModel,
+        pickupAddress: request.pickupAddress,
+        pickupDatetime: request.pickupDatetime,
+        price: Number(selectedBid.price),
+        requestId,
+        appUrl: env.CLIENT_URL,
+      });
+      return sendEmail({ to: driver.email, subject, html });
+    })
+    .catch(err => console.error('bid selected email failed:', err));
 
   return { message: 'נהג נבחר בהצלחה', driverId: selectedBid.driverId, price: selectedBid.price };
 }

@@ -1,4 +1,6 @@
 import { prisma } from '../../config/database';
+import { sendEmail, driverApprovedEmail, driverRejectedEmail } from '../../utils/email';
+import { env } from '../../config/env';
 
 export async function getPendingDrivers() {
   return prisma.driverProfile.findMany({
@@ -20,13 +22,26 @@ export async function getDriverDetail(driverId: string) {
 }
 
 export async function verifyDriver(driverId: string, approve: boolean, rejectionReason?: string) {
-  return prisma.driverProfile.update({
+  const profile = await prisma.driverProfile.update({
     where: { userId: driverId },
     data: {
       verificationStatus: approve ? 'VERIFIED' : 'REJECTED',
       rejectionReason: approve ? null : rejectionReason,
     },
   });
+
+  // Notify driver (non-blocking)
+  prisma.user.findUnique({ where: { id: driverId }, select: { email: true, name: true } })
+    .then(driver => {
+      if (!driver) return;
+      const { subject, html } = approve
+        ? driverApprovedEmail({ driverName: driver.name, appUrl: env.CLIENT_URL })
+        : driverRejectedEmail({ driverName: driver.name, reason: rejectionReason });
+      return sendEmail({ to: driver.email, subject, html });
+    })
+    .catch(err => console.error('driver verify email failed:', err));
+
+  return profile;
 }
 
 export async function getAllRequests(status?: string) {

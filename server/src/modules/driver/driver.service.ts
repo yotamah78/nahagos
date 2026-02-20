@@ -1,4 +1,6 @@
 import { prisma } from '../../config/database';
+import { sendEmail, jobStatusEmail } from '../../utils/email';
+import { env } from '../../config/env';
 
 export async function upsertProfile(userId: string, data: {
   city: string;
@@ -118,7 +120,24 @@ export async function updateJobStatus(driverId: string, requestId: string, statu
   const updated = await prisma.serviceRequest.update({
     where: { id: requestId },
     data: { status },
+    include: { customer: { select: { email: true, name: true } } },
   });
+
+  // Notify customer of status change (non-blocking)
+  prisma.user.findUnique({ where: { id: driverId }, select: { name: true } })
+    .then(driver => {
+      if (!driver || !updated.customer) return;
+      const { subject, html } = jobStatusEmail({
+        customerName: updated.customer.name,
+        status,
+        carModel: updated.carModel,
+        driverName: driver.name,
+        requestId,
+        appUrl: env.CLIENT_URL,
+      });
+      return sendEmail({ to: updated.customer.email, subject, html });
+    })
+    .catch(err => console.error('job status email failed:', err));
 
   return updated;
 }
