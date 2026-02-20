@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite does not support enums - using String with known values:
+// Role: CUSTOMER | DRIVER | ADMIN
+// DriverVerificationStatus: PENDING_VERIFICATION | VERIFIED | REJECTED
+// ServiceRequestStatus: OPEN | BIDDING | DRIVER_SELECTED | IN_PROGRESS | COMPLETED | CANCELLED
+// PaymentStatus: PENDING | AUTHORIZED | CAPTURED | REFUNDED | FAILED
+
+model User {
+  id            String    @id @default(cuid())
+  role          String    @default("CUSTOMER")
+  name          String
+  email         String    @unique
+  phone         String    @unique
+  passwordHash  String
+  emailVerified Boolean   @default(false)
+  phoneVerified Boolean   @default(false)
+  isSuspended   Boolean   @default(false)
+  otpCode       String?
+  otpExpiresAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  driverProfile   DriverProfile?
+  serviceRequests ServiceRequest[] @relation("CustomerRequests")
+  bids            Bid[]
+  reviewsGiven    Review[]         @relation("CustomerReviews")
+  reviewsReceived Review[]         @relation("DriverReviews")
+
+  @@map("users")
+}
+
+model DriverProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationStatus String   @default("PENDING_VERIFICATION")
+  licenseImageUrl    String?
+  selfieImageUrl     String?
+  photoUrl           String?
+  city               String
+  bio                String?
+  payoutMethod       String?
+  ratingAvg          Float    @default(0)
+  totalJobs          Int      @default(0)
+  rejectionReason    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("driver_profiles")
+}
+
+model ServiceRequest {
+  id                 String    @id @default(cuid())
+  customerId         String
+  customer           User      @relation("CustomerRequests", fields: [customerId], references: [id])
+  pickupAddress      String
+  returnAddress      String
+  destinationAddress String
+  pickupDatetime     DateTime
+  maxReturnDatetime  DateTime?
+  notes              String?
+  carModel           String
+  carPlateNumber     String
+  status             String    @default("OPEN")
+  selectedDriverId   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  bids    Bid[]
+  payment Payment?
+  review  Review?
+
+  @@map("service_requests")
+}
+
+model Bid {
+  id                  String         @id @default(cuid())
+  requestId           String
+  request             ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  driverId            String
+  driver              User           @relation(fields: [driverId], references: [id])
+  price               Float
+  estimatedReturnTime DateTime
+  message             String?
+  isSelected          Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+
+  @@unique([requestId, driverId])
+  @@map("bids")
+}
+
+model Payment {
+  id                    String         @id @default(cuid())
+  requestId             String         @unique
+  request               ServiceRequest @relation(fields: [requestId], references: [id])
+  stripePaymentIntentId String         @unique
+  amount                Float
+  commissionAmount      Float
+  driverAmount          Float
+  currency              String         @default("ils")
+  status                String         @default("PENDING")
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@map("payments")
+}
+
+model Review {
+  id         String         @id @default(cuid())
+  requestId  String         @unique
+  request    ServiceRequest @relation(fields: [requestId], references: [id])
+  customerId String
+  customer   User           @relation("CustomerReviews", fields: [customerId], references: [id])
+  driverId   String
+  driver     User           @relation("DriverReviews", fields: [driverId], references: [id])
+  rating     Int
+  reviewText String?
+  createdAt  DateTime       @default(now())
+
+  @@map("reviews")
+}
